@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.os.BatteryManager
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
@@ -138,21 +139,43 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
     private fun handleCommand(command: String) {
 
+        val text = command.lowercase(Locale.getDefault()).trim()
+
+        val numbers = Regex("""\d+(?:\.\d+)?""")
+            .findAll(text)
+            .map { it.value.toDouble() }
+            .toList()
+
         when {
-            command.contains("hello") ||
-            command.contains("hi jarvis") -> {
+            text.contains("hello") ||
+            text.contains("hi jarvis") ||
+            text.contains("hey jarvis") -> {
                 respond("Hello, sir. How can I help you?")
             }
 
-            command.contains("who are you") -> {
+            text.contains("who are you") ||
+            text.contains("what are you") ||
+            text.contains("introduce yourself") -> {
                 respond("I am JARVIS, your personal Android assistant.")
             }
 
-            command.contains("how are you") -> {
-                respond("All systems are operational, sir.")
+            text.contains("what can you do") ||
+            text.contains("your capabilities") -> {
+                respond("I can recognize your voice, tell you the time and date, check your battery, perform basic calculations, and open Android settings.")
             }
 
-            command.contains("time") -> {
+            text.contains("battery") -> {
+                val batteryManager =
+                    getSystemService(BATTERY_SERVICE) as BatteryManager
+
+                val battery = batteryManager.getIntProperty(
+                    BatteryManager.BATTERY_PROPERTY_CAPACITY
+                )
+
+                respond("Your battery level is $battery percent.")
+            }
+
+            text.contains("time") -> {
                 val time = SimpleDateFormat(
                     "h:mm a",
                     Locale.getDefault()
@@ -161,22 +184,101 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                 respond("The current time is $time.")
             }
 
-            command.contains("open settings") -> {
+            text.contains("date") ||
+            text.contains("today") -> {
+                val date = SimpleDateFormat(
+                    "EEEE, d MMMM yyyy",
+                    Locale.getDefault()
+                ).format(Date())
+
+                respond("Today is $date.")
+            }
+
+            (text.contains("plus") || text.contains("+")) && numbers.size >= 2 -> {
+                val result = numbers[0] + numbers[1]
+                respond("${formatNumber(numbers[0])} plus ${formatNumber(numbers[1])} equals ${formatNumber(result)}.")
+            }
+
+            (text.contains("minus") || text.contains("-")) && numbers.size >= 2 -> {
+                val result = numbers[0] - numbers[1]
+                respond("${formatNumber(numbers[0])} minus ${formatNumber(numbers[1])} equals ${formatNumber(result)}.")
+            }
+
+            (text.contains("times") ||
+             text.contains("multiply") ||
+             text.contains("multiplied") ||
+             text.contains("*")) && numbers.size >= 2 -> {
+                val result = numbers[0] * numbers[1]
+                respond("${formatNumber(numbers[0])} multiplied by ${formatNumber(numbers[1])} equals ${formatNumber(result)}.")
+            }
+
+            (text.contains("divided") ||
+             text.contains("divide") ||
+             text.contains("/")) && numbers.size >= 2 -> {
+                if (numbers[1] == 0.0) {
+                    respond("I cannot divide by zero.")
+                } else {
+                    val result = numbers[0] / numbers[1]
+                    respond("${formatNumber(numbers[0])} divided by ${formatNumber(numbers[1])} equals ${formatNumber(result)}.")
+                }
+            }
+
+            text.contains("open wifi") ||
+            text.contains("open wi-fi") ||
+            text.contains("wifi settings") ||
+            text.contains("wi-fi settings") -> {
+                respond("Opening Wi-Fi settings.")
+                startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
+            }
+
+            text.contains("open bluetooth") ||
+            text.contains("bluetooth settings") -> {
+                respond("Opening Bluetooth settings.")
+                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+            }
+
+            text.contains("open display") ||
+            text.contains("display settings") -> {
+                respond("Opening display settings.")
+                startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS))
+            }
+
+            text.contains("open sound") ||
+            text.contains("sound settings") -> {
+                respond("Opening sound settings.")
+                startActivity(Intent(Settings.ACTION_SOUND_SETTINGS))
+            }
+
+            text.contains("open settings") ||
+            text == "settings" -> {
                 respond("Opening settings.")
                 startActivity(Intent(Settings.ACTION_SETTINGS))
             }
 
-            command.contains("thank you") ||
-            command.contains("thanks") -> {
+            text.contains("thank you") ||
+            text.contains("thanks") -> {
                 respond("You're welcome, sir.")
             }
 
-            else -> {
-                respond(
-                    "I heard you say $command. " +
-                    "I don't know that command yet."
-                )
+            text.contains("good morning") -> {
+                respond("Good morning, sir. JARVIS is online and ready.")
             }
+
+            text.contains("good evening") -> {
+                respond("Good evening, sir. JARVIS is online and ready.")
+            }
+
+            else -> {
+                respond("I heard you say $command. I don't know that command yet.")
+            }
+        }
+    }
+
+    private fun formatNumber(number: Double): String {
+        return if (number % 1.0 == 0.0) {
+            number.toLong().toString()
+        } else {
+            number.toString()
         }
     }
 
