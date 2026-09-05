@@ -78,6 +78,17 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         core.setTextColor(android.graphics.Color.CYAN)
         core.setPadding(0, 40, 0, 40)
 
+        val pulse = android.view.animation.ScaleAnimation(
+            1.0f, 1.18f,
+            1.0f, 1.18f,
+            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
+            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f
+        )
+        pulse.duration = 700
+        pulse.repeatMode = android.view.animation.Animation.REVERSE
+        pulse.repeatCount = android.view.animation.Animation.INFINITE
+        core.startAnimation(pulse)
+
         root.addView(title)
         root.addView(core)
         root.addView(status)
