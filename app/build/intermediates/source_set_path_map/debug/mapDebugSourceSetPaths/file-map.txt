@@ -1,7 +1,0 @@
-com.bhumit.jarvis.app-pngs-0 /workspaces/JARVIS-Android/app/build/generated/res/pngs/debug
-com.bhumit.jarvis.app-resValues-1 /workspaces/JARVIS-Android/app/build/generated/res/resValues/debug
-com.bhumit.jarvis.app-packageDebugResources-2 /workspaces/JARVIS-Android/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.bhumit.jarvis.app-packageDebugResources-3 /workspaces/JARVIS-Android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.bhumit.jarvis.app-debug-4 /workspaces/JARVIS-Android/app/build/intermediates/merged_res/debug/mergeDebugResources
-com.bhumit.jarvis.app-debug-5 /workspaces/JARVIS-Android/app/src/debug/res
-com.bhumit.jarvis.app-main-6 /workspaces/JARVIS-Android/app/src/main/res

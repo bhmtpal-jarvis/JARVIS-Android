@@ -111,6 +111,13 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
                 override fun onError(error: Int) {
                     message.text = "I couldn't understand that. Try again."
+
+                    android.os.Handler(android.os.Looper.getMainLooper())
+                        .postDelayed({
+                            if (!isFinishing) {
+                                startListening()
+                            }
+                        }, 700)
                 }
 
                 override fun onReadyForSpeech(params: Bundle?) {}
@@ -284,6 +291,29 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
     private fun respond(text: String) {
         message.text = text
+
+        speech.setOnUtteranceProgressListener(
+            object : android.speech.tts.UtteranceProgressListener() {
+
+                override fun onStart(utteranceId: String?) {
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    runOnUiThread {
+                        android.os.Handler(android.os.Looper.getMainLooper())
+                            .postDelayed({
+                                if (!isFinishing) {
+                                    startListening()
+                                }
+                            }, 500)
+                    }
+                }
+
+                override fun onError(utteranceId: String?) {
+                }
+            }
+        )
+
         speech.speak(
             text,
             TextToSpeech.QUEUE_FLUSH,
