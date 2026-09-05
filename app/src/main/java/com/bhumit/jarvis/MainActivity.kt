@@ -31,11 +31,13 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
         speech = TextToSpeech(this, this)
 
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(40, 60, 40, 40)
-            setBackgroundColor(Color.BLACK)
+        val root = LinearLayout(this)
+        root.setBackgroundColor(android.graphics.Color.BLACK)
+        root.setPadding(32, 48, 32, 48).apply {
+            root.orientation = LinearLayout.VERTICAL
+            root.gravity = Gravity.CENTER
+            root.setPadding(40, 60, 40, 40)
+            root.setBackgroundColor(Color.BLACK)
         }
 
         val title = TextView(this).apply {
@@ -43,21 +45,21 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             textSize = 42f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Color.CYAN)
-            gravity = Gravity.CENTER
+            root.gravity = Gravity.CENTER
         }
 
         val status = TextView(this).apply {
             text = "● SYSTEM ONLINE"
             textSize = 18f
             setTextColor(Color.GREEN)
-            gravity = Gravity.CENTER
+            root.gravity = Gravity.CENTER
         }
 
         message = TextView(this).apply {
             text = "Good evening, sir.\nI am ready."
             textSize = 20f
             setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
+            root.gravity = Gravity.CENTER
             setPadding(0, 60, 0, 60)
         }
 
@@ -69,7 +71,15 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             }
         }
 
+        val core = TextView(this)
+        core.text = "◉"
+        core.textSize = 72f
+        core.gravity = android.view.Gravity.CENTER
+        core.setTextColor(android.graphics.Color.CYAN)
+        core.setPadding(0, 40, 0, 40)
+
         root.addView(title)
+        root.addView(core)
         root.addView(status)
         root.addView(message)
         root.addView(talkButton)
