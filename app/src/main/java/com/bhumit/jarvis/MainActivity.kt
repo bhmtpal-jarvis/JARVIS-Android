@@ -23,6 +23,7 @@ import java.util.Locale
 class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
     private lateinit var message: TextView
+    private lateinit var core: TextView
     private lateinit var speech: TextToSpeech
     private var recognizer: SpeechRecognizer? = null
 
@@ -71,23 +72,12 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             }
         }
 
-        val core = TextView(this)
+        core = TextView(this)
         core.text = "◉"
         core.textSize = 72f
         core.gravity = android.view.Gravity.CENTER
         core.setTextColor(android.graphics.Color.CYAN)
         core.setPadding(0, 40, 0, 40)
-
-        val pulse = android.view.animation.ScaleAnimation(
-            1.0f, 1.18f,
-            1.0f, 1.18f,
-            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
-            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f
-        )
-        pulse.duration = 700
-        pulse.repeatMode = android.view.animation.Animation.REVERSE
-        pulse.repeatCount = android.view.animation.Animation.INFINITE
-        core.startAnimation(pulse)
 
         root.addView(title)
         root.addView(core)
@@ -97,6 +87,30 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
         setContentView(root)
     }
+
+    fun setCoreState(state: String) {
+        core.clearAnimation()
+    
+        val scale = if (state == "LISTENING") 1.25f
+                    else if (state == "SPEAKING") 1.20f
+                    else 1.10f
+    
+        val pulse = android.view.animation.ScaleAnimation(
+            1.0f, scale,
+            1.0f, scale,
+            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
+            android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f
+        )
+    
+        pulse.duration = if (state == "LISTENING") 350
+                         else if (state == "SPEAKING") 450
+                         else 900
+    
+        pulse.repeatMode = android.view.animation.Animation.REVERSE
+        pulse.repeatCount = android.view.animation.Animation.INFINITE
+        core.startAnimation(pulse)
+    }
+    
 
     private fun startListening() {
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
@@ -162,6 +176,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             )
         }
 
+        setCoreState("LISTENING")
         recognizer?.startListening(intent)
     }
 
@@ -334,6 +349,8 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                 }
             }
         )
+
+        setCoreState("SPEAKING")
 
         speech.speak(
             text,
