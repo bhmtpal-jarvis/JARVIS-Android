@@ -24,6 +24,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
     private lateinit var message: TextView
     private lateinit var core: TextView
+    private lateinit var status: TextView
     private lateinit var speech: TextToSpeech
     private var recognizer: SpeechRecognizer? = null
 
@@ -49,7 +50,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             root.gravity = Gravity.CENTER
         }
 
-        val status = TextView(this).apply {
+        status = TextView(this).apply {
             text = "● SYSTEM ONLINE"
             textSize = 18f
             setTextColor(Color.GREEN)
@@ -177,6 +178,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         }
 
         setCoreState("LISTENING")
+        status.text = "LISTENING..."
         recognizer?.startListening(intent)
     }
 
@@ -351,6 +353,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         )
 
         setCoreState("SPEAKING")
+        status.text = "SPEAKING..."
 
         speech.speak(
             text,
