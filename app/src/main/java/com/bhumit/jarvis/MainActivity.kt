@@ -141,6 +141,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
                     if (command != null) {
                         message.text = "You said:\n$command"
+                status.text = "PROCESSING..."
                         handleCommand(command)
                     }
                 }
