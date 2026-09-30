@@ -19,6 +19,9 @@ import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.net.HttpURLConnection
+import java.net.URL
+import org.json.JSONObject
 
 class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
@@ -113,6 +116,93 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     }
     
 
+    private fun getWeather() {
+        status.text = "CHECKING WEATHER..."
+        setCoreState("LISTENING")
+
+        Thread {
+            try {
+                val place = java.net.URLEncoder.encode("Dhaneriya, Rajasthan", "UTF-8")
+
+                val geoUrl = URL("https://geocoding-api.open-meteo.com/v1/search?name=$place&count=5&countryCode=IN&language=en&format=json")
+                val geoConnection = geoUrl.openConnection() as HttpURLConnection
+                geoConnection.requestMethod = "GET"
+
+                val geoText = geoConnection.inputStream.bufferedReader().use { it.readText() }
+                val geoJson = JSONObject(geoText)
+                val results = geoJson.getJSONArray("results")
+
+                var latitude = 0.0
+                var longitude = 0.0
+                var found = false
+
+                for (i in 0 until results.length()) {
+                    val item = results.getJSONObject(i)
+                    if (item.optString("admin1").equals("Rajasthan", ignoreCase = true)) {
+                        latitude = item.getDouble("latitude")
+                        longitude = item.getDouble("longitude")
+                        found = true
+                        break
+                    }
+                }
+
+                if (!found) throw Exception("Location not found")
+
+                val weatherUrl = URL("https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,rain_sum,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=1")
+
+                val weatherConnection = weatherUrl.openConnection() as HttpURLConnection
+                weatherConnection.requestMethod = "GET"
+
+                val weatherText = weatherConnection.inputStream.bufferedReader().use { it.readText() }
+                val weatherJson = JSONObject(weatherText)
+
+                val current = weatherJson.getJSONObject("current")
+                val daily = weatherJson.getJSONObject("daily")
+
+                val temperature = current.getDouble("temperature_2m")
+                val feelsLike = current.getDouble("apparent_temperature")
+                val humidity = current.getInt("relative_humidity_2m")
+                val weatherCode = current.getInt("weather_code")
+                val wind = current.getDouble("wind_speed_10m")
+                val rainProbability = daily.getJSONArray("precipitation_probability_max").getInt(0)
+                val maxTemp = daily.getJSONArray("temperature_2m_max").getDouble(0)
+                val minTemp = daily.getJSONArray("temperature_2m_min").getDouble(0)
+                val rain = daily.getJSONArray("rain_sum").getDouble(0)
+
+                val description = when (weatherCode) {
+                    0 -> "clear sky"
+                    1, 2 -> "partly cloudy"
+                    3 -> "overcast"
+                    45, 48 -> "foggy"
+                    51, 53, 55, 56, 57 -> "drizzle"
+                    61, 63, 65, 66, 67 -> "rainy"
+                    71, 73, 75, 77 -> "snowy"
+                    80, 81, 82 -> "rain showers"
+                    85, 86 -> "snow showers"
+                    95, 96, 99 -> "a thunderstorm"
+                    else -> "mixed conditions"
+                }
+
+                val rainText = if (rain > 0.0) {
+                    "Expected rainfall is %.1f millimeters.".format(Locale.US, rain)
+                } else {
+                    "No measurable rainfall is expected."
+                }
+
+                val answer = "Sir, the current weather in Dhaneriya is %.0f degrees Celsius with %s. It feels like %.0f degrees. Humidity is %d percent and winds are around %.0f kilometers per hour. Today's high is %.0f degrees and low is %.0f degrees. There is a %d percent chance of rain today. %s".format(Locale.US, temperature, description, feelsLike, humidity, wind, maxTemp, minTemp, rainProbability, rainText)
+
+                runOnUiThread {
+                    respond(answer)
+                }
+
+            } catch (e: Exception) {
+                runOnUiThread {
+                    respond("Weather error: ${e.message ?: "unknown error"}")
+                }
+            }
+        }.start()
+    }
+
     private fun startListening() {
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
@@ -193,6 +283,8 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             .toList()
 
         when {
+            text.contains("weather") -> { getWeather() }
+
             text.contains("hello") ||
             text.contains("hi jarvis") ||
             text.contains("hey jarvis") -> {
