@@ -283,6 +283,16 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             .toList()
 
         when {
+            text.contains("youtube") -> {
+                val app = packageManager.getLaunchIntentForPackage("com.google.android.youtube")
+                if (app != null) {
+                    respond("Opening YouTube, sir.")
+                    startActivity(app)
+                } else {
+                    respond("Sorry sir, YouTube is not installed.")
+                }
+            }
+
             text.contains("weather") -> { getWeather() }
 
             text.contains("hello") ||
