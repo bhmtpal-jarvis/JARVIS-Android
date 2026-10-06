@@ -11,6 +11,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.graphics.Color
+import android.hardware.camera2.CameraManager
 import android.graphics.Typeface
 import android.view.Gravity
 import android.widget.Button
@@ -30,9 +31,11 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     private lateinit var status: TextView
     private lateinit var speech: TextToSpeech
     private var recognizer: SpeechRecognizer? = null
+    private lateinit var cameraManager: CameraManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        cameraManager = getSystemService(android.content.Context.CAMERA_SERVICE) as CameraManager
 
         speech = TextToSpeech(this, this)
 
@@ -203,6 +206,15 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         }.start()
     }
 
+    private fun openCamera() {
+        try {
+            val intent = Intent(android.provider.MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+            startActivity(intent)
+        } catch (e: Exception) {
+            respond("Sorry sir, I could not open the camera.")
+        }
+    }
+
     private fun startListening() {
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
@@ -283,6 +295,9 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             .toList()
 
         when {
+            text.contains("camera") -> {
+                openCamera()
+            }
             text.contains("youtube") -> {
                 val app = packageManager.getLaunchIntentForPackage("com.google.android.youtube")
                 if (app != null) {
