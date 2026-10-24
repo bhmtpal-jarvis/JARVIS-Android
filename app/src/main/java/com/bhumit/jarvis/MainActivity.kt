@@ -308,7 +308,17 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                 }
             }
 
-            text.contains("weather") -> { getWeather() }
+            text.contains("instagram") -> {
+            val app = packageManager.getLaunchIntentForPackage("com.instagram.android")
+            if (app != null) {
+                respond("Opening Instagram, sir.")
+                startActivity(app)
+            } else {
+                respond("Sorry sir, Instagram is not installed.")
+            }
+        }
+
+        text.contains("weather") -> { getWeather() }
 
             text.contains("hello") ||
             text.contains("hi jarvis") ||
